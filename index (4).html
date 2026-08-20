@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AETHER-12 :: Mission Operations Console</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="starfield"></canvas>
+<div class="app">
+
+  <!-- ============ HEADER ============ -->
+  <header class="top">
+    <div class="brand">
+      <div class="badge">A12</div>
+      <div><h1>AETHER&#8209;12<small>MISSION OPERATIONS CONSOLE</small></h1></div>
+    </div>
+    <div class="headstats">
+      <span>MET <b id="metMET">T+00:00:00</b></span>
+      <span>Orbit <b id="hOrbit">1</b></span>
+    </div>
+  </header>
+
+  <!-- ============ MISSION CONTEXT STRIP ============ -->
+  <div class="paramstrip">
+    <span class="chip"><span class="dotc"></span>3U CubeSat &middot; <b>500 km SSO</b> &middot; 97.4&deg;</span>
+    <span class="chip"><span class="dotc"></span>Hybrid CFRP/Al Structure &middot; <b>33% mass reduction</b></span>
+    <span class="chip"><span class="dotc"></span>LFP Battery &middot; <b>2,309 cycles</b> to 80% (LEO)</span>
+    <span class="chip"><span class="dotc"></span>Z&#8209;Graded Shield Vault &middot; <b>100&times;</b> TID reduction</span>
+    <span class="chip"><span class="dotc"></span>Deployable TJ GaAs Wings &middot; <b>&ge;95%</b> EOL power</span>
+    <span class="chip"><span class="dotc"></span>3&#8209;Axis ADCS &middot; <b>Star Tracker + Reaction Wheel</b></span>
+    <span class="chip"><span class="dotc"></span>Dual&#8209;Band Comms &middot; <b>UHF + S&#8209;Band</b></span>
+  </div>
+
+  <!-- ============ MISSION RATIONALE ============ -->
+  <div class="section" style="margin-top:12px;">
+    <div class="eyebrow">Why This Matters</div>
+    <h2>Mission Rationale</h2>
+    <p class="caption">CubeSats are a fast-growing but historically fragile category of spacecraft. Aether&#8209;12's design choices directly target the two biggest failure modes the industry sees today.</p>
+    <div class="env-grid">
+      <div class="env-card warn"><div class="l">Industry Failure Rate</div><div class="v">35&ndash;45%</div><div class="foot">of LEO CubeSats see premature subsystem degradation from unmodeled multi&#8209;threat interaction (AO + UV + thermal + radiation acting together, not separately)</div></div>
+      <div class="env-card"><div class="l">Cost of a Failed Mission</div><div class="v">$400K&ndash;$1.8M</div><div class="foot">per failed 3U mission in hardware, launch, and ground operations losses</div></div>
+      <div class="env-card good"><div class="l">Field Growth</div><div class="v">2,500+<span>launched by 2024</span></div><div class="foot">10,000+ CubeSats projected within the next decade; 165 NASA CSLI missions selected to date</div></div>
+    </div>
+  </div>
+
+  <div class="control-bar">
+    <div class="ctrl-group">
+      <span class="ctrl-label">Playback</span>
+      <div class="icon-btn" id="playBtn" title="Play/Pause">&#10074;&#10074;</div>
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Speed</span>
+      <div class="speed-btn" data-speed="1">1x</div>
+      <div class="speed-btn active" data-speed="4">4x</div>
+      <div class="speed-btn" data-speed="12">12x</div>
+      <div class="speed-btn" data-speed="40">40x</div>
+    </div>
+    <div class="ctrl-group" style="flex:1;min-width:180px;">
+      <span class="scrubtime" id="scrubTimeLbl">00:00</span>
+      <input type="range" id="scrubSlider" min="0" max="1440" step="1" value="0">
+    </div>
+    <div class="ctrl-group">
+      <div class="jump-btn" id="jumpAOS">&#8594; AOS</div>
+      <div class="jump-btn" id="jumpTCA">&#8594; TCA</div>
+      <div class="jump-btn" id="jumpLOS">&#8594; LOS</div>
+    </div>
+    <button class="fault-btn" id="faultBtn"><span class="dot"></span> Simulate Solar Flare</button>
+  </div>
+
+  <!-- ============ 1. WHERE IS IT ============ -->
+  <div class="section">
+    <div class="eyebrow">Right Now</div>
+    <h2>Where Aether&#8209;12 Is</h2>
+    <div class="hero-grid">
+      <div class="skywrap">
+        <canvas id="skyplot" width="200" height="200"></canvas>
+        <div class="skylabel">view from ground station</div>
+      </div>
+      <div>
+        <div class="story-line" id="storyLine">Loading orbit model…</div>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="l">Distance</div><div class="v" id="hDist">&mdash;<span>km</span></div></div>
+          <div class="hero-stat"><div class="l">Elevation</div><div class="v" id="hElev">&mdash;<span>&deg;</span></div></div>
+          <div class="hero-stat"><div class="l">Altitude</div><div class="v">500<span>km</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 2. 3D GLOBE ============ -->
+  <div class="section" id="globeSection">
+    <div class="eyebrow">Coverage</div>
+    <h2>Ground Track &mdash; 3D Orbital View</h2>
+    <p class="caption">A photorealistic satellite-imagery model of Earth with Aether&#8209;12's actual CubeSat model flying its real flight path. The dashed ring is the full orbital plane; the solid trail is where it's actually been. The camera eases to follow the satellite, and the glowing circle is the footprint &mdash; anywhere inside it could see the satellite above the horizon.</p>
+    <div id="globeWrap">
+      <canvas id="globeCanvas" width="900" height="640"></canvas>
+      <div class="globe-loading" id="globeLoading">Loading Earth imagery&hellip;</div>
+    </div>
+    <div class="map-legend">
+      <span><i class="sw" style="background:var(--accent)"></i>Ground Track (flown)</span>
+      <span><i class="sw" style="background:#ff7a1a55"></i>Orbital Plane (full ring)</span>
+      <span><i class="sw" style="background:#3d8bfd77"></i>Coverage Footprint</span>
+      <span><i class="sw" style="background:var(--green)"></i>Ground Station (Apex, NC)</span>
+      <span><i class="sw" style="background:var(--amber)"></i>South Atlantic Anomaly Zone</span>
+      <span><i class="sw" style="background:#eef2fc"></i>N / S Poles</span>
+    </div>
+    <div class="map-note" id="globeSourceNote">Textured with real Earth satellite imagery, sampled per-pixel onto a rotating sphere using inverse spherical projection &mdash; no 3D engine or map-tile service, just canvas and trigonometry. The CubeSat model is a stylized reference, not a CAD rendering of the actual bus. If imagery fails to load, this automatically falls back to a vector-drawn globe.</div>
+  </div>
+
+  <!-- ============ 3. SIGNAL STRENGTH ============ -->
+  <div class="section" id="signalSection">
+    <div class="eyebrow">Can We Hear It?</div>
+    <h2>Signal Strength</h2>
+    <p class="caption">This is the safety cushion between what our radio receives and the weakest signal it can still decode. Positive = clean data. Negative = static. This model tracks the primary UHF downlink; Aether&#8209;12 also carries a secondary S&#8209;band patch antenna for higher-rate payload data when link geometry allows.</p>
+    <div class="siglabel" id="sigLabel">&mdash;</div>
+    <div class="sigbar-track"><div class="sigbar-fill" id="sigFill" style="width:0%;background:var(--green);"></div></div>
+    <div class="sigbar-scale"><span>No Signal</span><span>Weak</span><span>Strong</span></div>
+    <div class="sigsub" id="sigSub">Link margin: &mdash; dB</div>
+  </div>
+
+  <!-- ============ 4. DOPPLER ============ -->
+  <div class="section">
+    <div class="eyebrow">Why The Frequency Moves</div>
+    <h2>Doppler Shift</h2>
+    <p class="caption">Just like an ambulance siren sounds higher-pitched as it approaches and lower as it drives away, Aether&#8209;12's radio signal shifts frequency as it moves toward or away from us.</p>
+    <div class="doppler-top">
+      <div class="arrow-badge" id="arrowBadge">&#8594;</div>
+      <div>
+        <div class="doppler-num" id="dopplerNum">0 <span>Hz shift</span></div>
+        <div class="sigsub" id="dopplerSub">Tuned frequency: 437.500000 MHz</div>
+      </div>
+    </div>
+    <canvas id="chartCanvas" width="900" height="160"></canvas>
+    <div class="chart-legend">
+      <span><i class="ln" style="background:var(--accent)"></i>Doppler Shift (Hz)</span>
+      <span><i class="ln" style="background:var(--blue)"></i>Signal Margin (dB)</span>
+    </div>
+  </div>
+
+  <!-- ============ 5. WATERFALL ============ -->
+  <div class="section">
+    <div class="eyebrow">What Our Radio Actually Sees</div>
+    <h2>Live Radio Spectrum</h2>
+    <p class="caption">Every scrolling row is one instant in time. The bright curve bending across the screen <i>is</i> the Doppler shift &mdash; watch it sweep as the satellite passes overhead.</p>
+    <canvas id="waterfallCanvas" width="900" height="200"></canvas>
+    <div class="wf-legend"><span>&minus;5 kHz</span><span>437.500 MHz</span><span>+5 kHz</span></div>
+  </div>
+
+  <!-- ============ 6. AI SIGNAL INTELLIGENCE ============ -->
+  <div class="section" id="aiSection">
+    <div class="eyebrow">Automated Monitoring</div>
+    <h2>AI Signal Intelligence</h2>
+    <p class="caption">Ground software continuously classifies the incoming signal so a problem gets flagged the instant it happens, instead of a human noticing it later.</p>
+    <div class="ai-row">
+      <div class="ai-ring">
+        <svg viewBox="0 0 74 74">
+          <circle class="bgring" cx="37" cy="37" r="31" fill="none" stroke-width="6"></circle>
+          <circle class="fgring" id="aiRing" cx="37" cy="37" r="31" fill="none" stroke-width="6" stroke-dasharray="194.8" stroke-dashoffset="194.8"></circle>
+        </svg>
+        <div class="pct" id="aiPct">0%</div>
+      </div>
+      <div class="ai-info">
+        <div class="ai-label" id="aiLabel">NOMINAL DOWNLINK</div>
+        <div class="ai-model">model: RF&#8209;CNN&#8209;v3 &middot; onboard inference, 8&nbsp;Hz</div>
+        <div class="ai-bars">
+          <div class="ai-bar-row"><span class="lbl">Nominal</span><div class="ai-bar-track"><div class="ai-bar-fill" id="barNom" style="background:var(--green);width:0%;"></div></div><span class="pctv" id="pctNom">0%</span></div>
+          <div class="ai-bar-row"><span class="lbl">Multipath</span><div class="ai-bar-track"><div class="ai-bar-fill" id="barMulti" style="background:var(--amber);width:0%;"></div></div><span class="pctv" id="pctMulti">0%</span></div>
+          <div class="ai-bar-row"><span class="lbl">Interference</span><div class="ai-bar-track"><div class="ai-bar-fill" id="barInterf" style="background:var(--red);width:0%;"></div></div><span class="pctv" id="pctInterf">0%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 7. MATERIALS & STRUCTURAL DESIGN ============ -->
+  <div class="section">
+    <div class="eyebrow">Structural Design</div>
+    <h2>Materials &amp; Survivability</h2>
+    <p class="caption">Every CubeSat surface fights atomic oxygen erosion, thermal cycling, and radiation at once. Our design study weighed baseline aluminum against emerging alternatives for mass, stiffness, and end-of-life demisability.</p>
+    <div class="env-grid">
+      <div class="env-card"><div class="l">Baseline Structure</div><div class="v">Al 6061&#8209;T6</div><div class="foot">302 MPa yield strength &middot; industry-standard, low cost, TRL 9</div></div>
+      <div class="env-card good"><div class="l">Mass&#8209;Optimized Alternative</div><div class="v">Hybrid CFRP/Al<span>&minus;33% mass</span></div><div class="foot">848.6 Hz Mode 1 eigenfrequency vs. 705.2 Hz for all-aluminum &mdash; exceeds the 90 Hz launch requirement by 5&ndash;9&times;</div></div>
+      <div class="env-card good"><div class="l">Demisability</div><div class="v">WE43 Mg<span>+3.4 km</span></div><div class="foot">Micro-lattice structure demises at 96.7 km vs. 93.3 km for aluminum &mdash; zero ground-casualty risk per ESA DRAMA modeling</div></div>
+    </div>
+    <div class="env-compare">
+      <div class="compare-title">Thermal Cycling Envelope (per ~94.5&#8209;min orbit)</div>
+      <div class="compare-row">
+        <span class="compare-lbl">Surface Temperature</span>
+        <div class="compare-track"><div class="compare-fill" style="width:74%;background:var(--amber);"></div></div>
+        <span class="compare-val">&minus;30&deg;C to +110&deg;C</span>
+      </div>
+      <div class="compare-row">
+        <span class="compare-lbl">Combined Thermal Stress</span>
+        <div class="compare-track"><div class="compare-fill" style="width:60%;background:var(--blue);"></div></div>
+        <span class="compare-val">107&ndash;968 MPa</span>
+      </div>
+    </div>
+    <div class="env-compare">
+      <div class="compare-title">Solar Array Technology &mdash; 6&#8209;Month Power Degradation in LEO</div>
+      <div class="compare-row"><span class="compare-lbl">TJ GaAs (selected)</span><div class="compare-track"><div class="compare-fill" style="width:12%;background:var(--green);"></div></div><span class="compare-val">1.5&ndash;3.0% loss</span></div>
+      <div class="compare-row"><span class="compare-lbl">Mono-Silicon</span><div class="compare-track"><div class="compare-fill" style="width:42%;background:var(--amber);"></div></div><span class="compare-val">7.8&ndash;12.5% loss</span></div>
+      <div class="compare-row"><span class="compare-lbl">CIGS</span><div class="compare-track"><div class="compare-fill" style="width:100%;background:var(--red);"></div></div><span class="compare-val">~40% loss (Delfi&#8209;C3)</span></div>
+    </div>
+    <p class="caption" style="margin:12px 0 0;font-size:12px;">TJ GaAs (29.5&ndash;30% efficiency, 1&times;10&sup1;&#8309; e/cm&sup2; radiation hardness) was selected over mono-silicon and CIGS specifically because the Ge bottom junction is more resistant to proton damage crossing the inner Van Allen belt.</p>
+  </div>
+
+  <!-- ============ DEORBIT & END-OF-MISSION COMPLIANCE ============ -->
+  <div class="section">
+    <div class="eyebrow">End of Mission</div>
+    <h2>Deorbit &amp; Regulatory Compliance</h2>
+    <p class="caption">A satellite's design isn't finished until it accounts for how it leaves orbit. Regulatory deorbit windows have compressed sharply in the last few years, and Aether&#8209;12's structure and deorbit system are built around the newer, stricter rule.</p>
+    <div class="env-grid">
+      <div class="env-card"><div class="l">IADC Guideline</div><div class="v">25&nbsp;yr<span>voluntary</span></div><div class="foot">International guideline, adopted 2002 &mdash; not legally binding</div></div>
+      <div class="env-card good"><div class="l">FCC Rule (Design Target)</div><div class="v">5&nbsp;yr<span>binding</span></div><div class="foot">US federal regulation, effective Sept 2024 &mdash; applies to any US-licensed operator or foreign operator using US ground stations</div></div>
+      <div class="env-card"><div class="l">ISO 24113</div><div class="v">LEO&#8209;scaled</div><div class="foot">Global engineering standard, updated 2023, referenced in most licensing regimes</div></div>
+    </div>
+    <div class="env-compare">
+      <div class="compare-title">Deorbit Compliance Reality</div>
+      <div class="compare-row"><span class="compare-lbl">Industry Today</span><div class="compare-track"><div class="compare-fill" style="width:50%;background:var(--amber);"></div></div><span class="compare-val">~50% success</span></div>
+      <div class="compare-row"><span class="compare-lbl">Mega&#8209;Constellation Target</span><div class="compare-track"><div class="compare-fill" style="width:95%;background:var(--green);"></div></div><span class="compare-val">95%+ success</span></div>
+    </div>
+    <p class="caption" style="margin:12px 0 0;font-size:12px;">Deorbit method: passive drag sail (InflateSail heritage &mdash; 10 m&sup2; sail on a 1 m inflatable mast). A square-pyramid sail geometry gives ~4&times; the drag area of a flat sail, cutting decay time from years to months. Our implementation stows the sail as four membrane quadrants (NE/NW/SE/SW) in a dedicated deployment cassette, released by burn-wire heater blocks on command. Combined with WE43 magnesium structural elements that fully ablate on re-entry, this gives Aether&#8209;12 a zero ground-casualty profile under ESA DRAMA modeling.</p>
+  </div>
+
+  <!-- ============ 8. BATTERY & POWER SYSTEMS ============ -->
+  <div class="section">
+    <div class="eyebrow">Energy Budget</div>
+    <h2>Battery &amp; Power Systems</h2>
+    <p class="caption">Every orbit is a ~60-minute charge cycle followed by a ~35-minute eclipse running entirely on stored energy. Chemistry and distribution architecture were chosen to survive thousands of these cycles without meaningful degradation.</p>
+    <div class="env-grid">
+      <div class="env-card good"><div class="l">Battery Chemistry</div><div class="v">LFP<span>2,309 cycles</span></div><div class="foot">Cycles to 80% capacity in simulated LEO conditions (Dalhousie Univ. accelerated cycling study) &mdash; runs coolest of all tested chemistries</div></div>
+      <div class="env-card"><div class="l">Orbital Power Budget</div><div class="v">~7 W<span>generation</span></div><div class="foot">25,564 J generated during the sunlit phase; 21,648 J usable through eclipse after conversion losses</div></div>
+      <div class="env-card good"><div class="l">Distribution</div><div class="v">MPPT</div><div class="foot">Maximum power point tracking harvests ~10&ndash;20% more energy than direct energy transfer (DET) architectures</div></div>
+    </div>
+    <div class="env-compare">
+      <div class="compare-title">Cycle Life to 80% Capacity, LEO Conditions</div>
+      <div class="compare-row"><span class="compare-lbl">LFP (selected)</span><div class="compare-track"><div class="compare-fill" style="width:100%;background:var(--green);"></div></div><span class="compare-val">2,309 cycles</span></div>
+      <div class="compare-row"><span class="compare-lbl">NMC</span><div class="compare-track"><div class="compare-fill" style="width:14%;background:var(--amber);"></div></div><span class="compare-val">324 cycles</span></div>
+      <div class="compare-row"><span class="compare-lbl">NCA</span><div class="compare-track"><div class="compare-fill" style="width:11%;background:var(--red);"></div></div><span class="compare-val">264 cycles</span></div>
+    </div>
+    <p class="caption" style="margin:12px 0 0;font-size:12px;">The TJ GaAs array is mounted on <b>deployable solar wing panels</b> rather than body-fixed to the bus &mdash; this is what the CubeSat model on the 3D globe above is showing when its panels extend outward from the body.</p>
+  </div>
+
+  <!-- ============ ATTITUDE DETERMINATION & CONTROL (ADCS) ============ -->
+  <div class="section">
+    <div class="eyebrow">Pointing &amp; Stability</div>
+    <h2>Attitude Determination &amp; Control</h2>
+    <p class="caption">Knowing where you are in orbit is only half the problem &mdash; the spacecraft also has to know which way it's <i>pointing</i>, and correct for drift, to keep solar panels sun-facing and the antenna aimed at the ground station. This is a full 3-axis stabilized system, not a passive or spin-stabilized design.</p>
+    <div class="env-grid">
+      <div class="env-card good"><div class="l">Attitude Sensing</div><div class="v">Star Tracker</div><div class="foot">Paired with sun sensors and an IMU (inertial measurement unit) for continuous 3-axis orientation knowledge</div></div>
+      <div class="env-card good"><div class="l">Fine Pointing</div><div class="v">Reaction Wheel</div><div class="foot">Provides precise, propellant-free torque for slewing and fine pointing control</div></div>
+      <div class="env-card good"><div class="l">Momentum Management</div><div class="v">3&#8209;Axis Magnetorquers</div><div class="foot">X/Y/Z magnetorquer coils desaturate the reaction wheel by pushing against Earth's magnetic field &mdash; no propellant required</div></div>
+    </div>
+    <p class="caption" style="margin:12px 0 0;font-size:12px;">This is why the Doppler and link-budget math above matters so much: without accurate attitude control, the antenna and solar wings can't stay reliably pointed, which is exactly the kind of failure mode the AI signal classifier and link-margin tracking above are designed to catch early.</p>
+  </div>
+
+  <!-- ============ 9. SPACE ENVIRONMENT & RADIATION HEALTH ============ -->
+  <div class="section" id="envSection">
+    <div class="eyebrow">Survivability</div>
+    <h2>Space Environment &amp; Radiation Health</h2>
+    <p class="caption">Materials and shielding decisions from our design study, tracked against live orbital position &mdash; including passes through the South Atlantic Anomaly, where trapped radiation is elevated.</p>
+
+    <div class="env-grid">
+      <div class="env-card good"><div class="l">Shielding Strategy</div><div class="v">Z&#8209;Graded</div><div class="foot">183 rad/yr at 500 km &mdash; 100&times; better than unshielded aluminum (NASA Shields&#8209;1 heritage)</div></div>
+      <div class="env-card good"><div class="l">AO Coating</div><div class="v">MIL&#8209;53(Al)</div><div class="foot">Erosion yield reduced to 12% of bare polyimide &mdash; 88% protection improvement</div></div>
+      <div class="env-card good"><div class="l">EOL Power Retention</div><div class="v">&ge;95%<span>at 24&nbsp;mo</span></div><div class="foot">Design requirement for TJ GaAs array end&#8209;of&#8209;life performance</div></div>
+    </div>
+
+    <div class="env-compare">
+      <div class="compare-title">Shielding Effectiveness</div>
+      <div class="compare-row"><span class="compare-lbl">Z&#8209;Graded Shield</span><div class="compare-track"><div class="compare-fill" style="width:0.7%;background:var(--green);"></div></div><span class="compare-val">183 rad/yr</span></div>
+      <div class="compare-row"><span class="compare-lbl">Unshielded Al</span><div class="compare-track"><div class="compare-fill" style="width:100%;background:var(--red);"></div></div><span class="compare-val">27,269 rad/yr</span></div>
+    </div>
+
+    <div class="env-compare">
+      <div class="compare-title">TID Source Breakdown in LEO</div>
+      <div class="compare-row"><span class="compare-lbl">Trapped Protons</span><div class="compare-track"><div class="compare-fill" style="width:45%;background:var(--blue);"></div></div><span class="compare-val">45%</span></div>
+      <div class="compare-row"><span class="compare-lbl">Trapped Electrons</span><div class="compare-track"><div class="compare-fill" style="width:30%;background:var(--violet);"></div></div><span class="compare-val">30%</span></div>
+      <div class="compare-row"><span class="compare-lbl">Solar Particle Events</span><div class="compare-track"><div class="compare-fill" style="width:15%;background:var(--amber);"></div></div><span class="compare-val">15%</span></div>
+      <div class="compare-row"><span class="compare-lbl">Galactic Cosmic Rays</span><div class="compare-track"><div class="compare-fill" style="width:10%;background:var(--txt-lo);"></div></div><span class="compare-val">10%</span></div>
+    </div>
+
+    <p class="caption" style="margin:14px 0 0;font-size:12px;">The Z-graded strategy above is physically implemented as a multi-layer shield vault around the most sensitive electronics &mdash; low-Z, high-Z, intermediate, and isolation layers, each tuned to stop a different part of the particle spectrum. A dedicated radiation sensor, dosimeter, and particle counter fly onboard as instruments in their own right, giving real dose measurements to validate against exactly this kind of model.</p>
+
+    <div class="hero-stats" style="margin-top:16px;">
+      <div class="hero-stat"><div class="l">Session Dose (Z&#8209;Shield)</div><div class="v" id="envDoseZ">0.000<span>rad</span></div></div>
+      <div class="hero-stat"><div class="l">Session Dose (If Unshielded)</div><div class="v" id="envDoseAl">0.00<span>rad</span></div></div>
+    </div>
+
+    <div class="saa-banner" id="saaBanner"><span class="d"></span> SOUTH ATLANTIC ANOMALY CROSSING &mdash; elevated trapped-particle flux</div>
+  </div>
+
+  <!-- ============ ONBOARD RADIATION-TOLERANT ELECTRONICS ============ -->
+  <div class="section">
+    <div class="eyebrow">Flight Computer</div>
+    <h2>Onboard Radiation&#8209;Tolerant Electronics</h2>
+    <p class="caption">Commercial (COTS) computers are far cheaper than space-rated hardware, but need real protection to survive years in LEO. This is the specific mitigation strategy &mdash; not generic "shielding," but concrete, testable layers, built around our own OBC and Supervisor Module architecture.</p>
+    <div class="env-grid">
+      <div class="env-card"><div class="l">COTS Reference Testing</div><div class="v">BeagleBone Black</div><div class="foot">Proton-tested at 15.9 MeV in published research &mdash; ~0.5 single-event upset failures/year in LEO once shielded, used to validate our COTS mitigation strategy</div></div>
+      <div class="env-card good"><div class="l">Memory Protection</div><div class="v">MR4A16BCMA35</div><div class="foot">Radiation-hardened MRAM with EDAC (error detection and correction) for critical data storage</div></div>
+      <div class="env-card good"><div class="l">Fault Recovery</div><div class="v">TMS570 + TPL5010&#8209;Q1</div><div class="foot">Radiation-tolerant microcontroller paired with an independent hardware watchdog timer for auto-reset on lockup</div></div>
+      <div class="env-card good"><div class="l">Onboard Architecture</div><div class="v">OBC + Supervisor</div><div class="foot">Primary On-Board Computer module backed by an independent Supervisor Module that can detect and recover a hung OBC without ground intervention</div></div>
+    </div>
+    <p class="caption" style="margin:12px 0 0;font-size:12px;">Three-layer strategy: TID screening (component selection), SEL detection &amp; recovery (watchdog), and memory integrity protection (EDAC). Combined with Z-graded shielding, this is what makes an unhardened commercial computer viable for a multi-year mission instead of the ~3-month lifespan COTS parts get with no mitigation at all.</p>
+  </div>
+
+  <div class="section">
+    <div class="toggle-btn" id="toggleData">&#9656; Show live data feed</div>
+    <div class="collapsible" id="dataCollapse"><div id="terminal"></div></div>
+  </div>
+
+  <div class="section">
+    <div class="toggle-btn" id="toggleLearn">&#9656; How this all works</div>
+    <div class="collapsible" id="learnCollapse">
+      <div class="grouplabel">Key Terms</div>
+      <div class="gitem"><b>AOS</b> — Acquisition of Signal<span>The moment the satellite rises above the horizon and contact becomes possible.</span></div>
+      <div class="gitem"><b>LOS</b> — Loss of Signal<span>The moment the satellite drops below the horizon and contact ends.</span></div>
+      <div class="gitem"><b>TCA</b> — Time of Closest Approach<span>The point of minimum distance / maximum elevation, and the strongest signal of the pass.</span></div>
+      <div class="gitem"><b>Free-Space Path Loss</b><span>Signal strength fades with the square of distance &mdash; this is why margin is worst near the horizon.</span></div>
+      <div class="gitem"><b>TID</b> — Total Ionizing Dose<span>Cumulative radiation damage to electronics over the mission lifetime, measured in rad(Si).</span></div>
+      <div class="gitem"><b>South Atlantic Anomaly</b><span>A region where Earth's magnetic field is weaker, allowing trapped radiation belt particles to dip closer to low orbit altitudes.</span></div>
+      <div class="gitem"><b>Demisability</b><span>Whether a structure fully burns up on re-entry rather than surviving to impact the ground &mdash; a regulatory requirement, not just an engineering nicety.</span></div>
+      <div class="gitem"><b>SEU / SEL</b> — Single Event Upset / Latch-up<span>A bit flip or a stuck high-current state caused by a single high-energy particle strike, as opposed to gradual TID damage.</span></div>
+      <div class="gitem"><b>EDAC</b> — Error Detection and Correction<span>Memory hardware that can detect and automatically fix radiation-induced bit flips before they corrupt data.</span></div>
+      <div class="gitem"><b>Magnetorquer</b><span>A coil that generates a magnetic field to push against Earth's own field, producing torque without using any propellant.</span></div>
+      <div class="gitem"><b>Reaction Wheel</b><span>A spinning flywheel that provides precise attitude control torque by conservation of angular momentum &mdash; the primary fine-pointing actuator.</span></div>
+      <div class="gitem"><b>Star Tracker</b><span>An optical sensor that identifies known star patterns to determine spacecraft orientation with high precision, independent of GPS.</span></div>
+      <div class="grouplabel">Flight-Validated References</div>
+      <div class="gitem"><b>NASA Shields&#8209;1</b> — flown 2018, 500 km SSO<span>Source of the Z-graded shielding TID rates used throughout this app (183 rad/yr vs. 27,269 rad/yr unshielded aluminum).</span></div>
+      <div class="gitem"><b>LabOSat&#8209;01</b> — two 1,100&#8209;day LEO missions<span>Flight data showing TID between 5&ndash;19 Gy depending on shielding geometry; modeled at ~2,825 rad(Si) for a 2-year, 800 km mission.</span></div>
+      <div class="grouplabel">Aether&#8209;12 Flight Hardware</div>
+      <div class="modrow"><span class="modstatus"></span><span class="modname">OBC Module + Supervisor Module</span><span class="modtag">flight computer</span></div>
+      <div class="modrow"><span class="modstatus"></span><span class="modname">Primary Radio (UHF) + S&#8209;Band Patch</span><span class="modtag">dual&#8209;band comms</span></div>
+      <div class="modrow"><span class="modstatus"></span><span class="modname">Star Tracker + Reaction Wheel + 3&#8209;Axis Magnetorquers</span><span class="modtag">ADCS</span></div>
+      <div class="modrow"><span class="modstatus"></span><span class="modname">Radiation Sensor + Dosimeter + Particle Counter</span><span class="modtag">instruments</span></div>
+      <div class="modrow"><span class="modstatus"></span><span class="modname">PDU + BMS Interface</span><span class="modtag">power</span></div>
+      <div class="grouplabel">Software Behind This Page</div>
+      <div class="modrow"><span class="modstatus"></span><span class="modname">Keplerian Orbit Propagator</span><span class="modtag">physics</span></div>
+      <div class="modrow"><span class="modstatus"></span><span class="modname">3D Globe Projection Engine</span><span class="modtag">canvas math</span></div>
+      <div class="modrow"><span class="modstatus"></span><span class="modname">Doppler / Link Budget Engine</span><span class="modtag">RF math</span></div>
+      <div class="modrow"><span class="modstatus"></span><span class="modname">AI Signal Classifier</span><span class="modtag">simulated</span></div>
+      <div class="modrow"><span class="modstatus"></span><span class="modname">Radiation Dose Accumulator</span><span class="modtag">Z&#8209;Shield model</span></div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <b>AETHER&#8209;12</b> &middot; runs entirely in your browser &middot; no server, no backend, no external resources &middot; deployed as a static page
+  </footer>
+</div><script src="app.js"></script>
+</body>
+</html>

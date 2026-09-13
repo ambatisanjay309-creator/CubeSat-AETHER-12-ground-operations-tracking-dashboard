@@ -9,22 +9,23 @@
 <body>
 <canvas id="starfield"></canvas>
 <div class="app">
-
+ 
   <!-- ============ HEADER ============ -->
   <header class="top">
     <div class="brand">
       <div class="badge">A12</div>
       <div><h1>AETHER&#8209;12<small>MISSION OPERATIONS CONSOLE</small></h1></div>
     </div>
+    <div class="brand-tagline">A Research&#8209;Backed Mission Design &amp; Live Telemetry Console &middot; Prepared for NASA &amp; SpaceX</div>
     <div class="headstats">
       <span>MET <b id="metMET">T+00:00:00</b></span>
       <span>Orbit <b id="hOrbit">1</b></span>
     </div>
   </header>
-
+ 
   <!-- ============ MISSION CONTEXT STRIP ============ -->
   <div class="paramstrip">
-    <span class="chip"><span class="dotc"></span>3U CubeSat &middot; <b>500 km SSO</b> &middot; 97.4&deg;</span>
+    <span class="chip"><span class="dotc"></span>12U CubeSat &middot; <b>500 km SSO</b> &middot; 97.4&deg;</span>
     <span class="chip"><span class="dotc"></span>Hybrid CFRP/Al Structure &middot; <b>33% mass reduction</b></span>
     <span class="chip"><span class="dotc"></span>LFP Battery &middot; <b>2,309 cycles</b> to 80% (LEO)</span>
     <span class="chip"><span class="dotc"></span>Z&#8209;Graded Shield Vault &middot; <b>100&times;</b> TID reduction</span>
@@ -32,7 +33,7 @@
     <span class="chip"><span class="dotc"></span>3&#8209;Axis ADCS &middot; <b>Star Tracker + Reaction Wheel</b></span>
     <span class="chip"><span class="dotc"></span>Dual&#8209;Band Comms &middot; <b>UHF + S&#8209;Band</b></span>
   </div>
-
+ 
   <!-- ============ MISSION RATIONALE ============ -->
   <div class="section" style="margin-top:12px;">
     <div class="eyebrow">Why This Matters</div>
@@ -40,11 +41,12 @@
     <p class="caption">CubeSats are a fast-growing but historically fragile category of spacecraft. Aether&#8209;12's design choices directly target the two biggest failure modes the industry sees today.</p>
     <div class="env-grid">
       <div class="env-card warn"><div class="l">Industry Failure Rate</div><div class="v">35&ndash;45%</div><div class="foot">of LEO CubeSats see premature subsystem degradation from unmodeled multi&#8209;threat interaction (AO + UV + thermal + radiation acting together, not separately)</div></div>
-      <div class="env-card"><div class="l">Cost of a Failed Mission</div><div class="v">$400K&ndash;$1.8M</div><div class="foot">per failed 3U mission in hardware, launch, and ground operations losses</div></div>
+      <div class="env-card"><div class="l">Cost of a Failed Mission</div><div class="v">$400K&ndash;$1.8M</div><div class="foot">industry benchmark for a single failed 3U-class mission in hardware, launch, and ground operations losses</div></div>
       <div class="env-card good"><div class="l">Field Growth</div><div class="v">2,500+<span>launched by 2024</span></div><div class="foot">10,000+ CubeSats projected within the next decade; 165 NASA CSLI missions selected to date</div></div>
     </div>
+    <div class="cite">Sources: Eurostat 2025, Seradata CubeSat failure analysis, BryceTech SMI Report, NASA Office of STEM Engagement</div>
   </div>
-
+ 
   <div class="control-bar">
     <div class="ctrl-group">
       <span class="ctrl-label">Playback</span>
@@ -68,7 +70,7 @@
     </div>
     <button class="fault-btn" id="faultBtn"><span class="dot"></span> Simulate Solar Flare</button>
   </div>
-
+ 
   <!-- ============ 1. WHERE IS IT ============ -->
   <div class="section">
     <div class="eyebrow">Right Now</div>
@@ -88,7 +90,7 @@
       </div>
     </div>
   </div>
-
+ 
   <!-- ============ 2. 3D GLOBE ============ -->
   <div class="section" id="globeSection">
     <div class="eyebrow">Coverage</div>
@@ -106,9 +108,16 @@
       <span><i class="sw" style="background:var(--amber)"></i>South Atlantic Anomaly Zone</span>
       <span><i class="sw" style="background:#eef2fc"></i>N / S Poles</span>
     </div>
-    <div class="map-note" id="globeSourceNote">Textured with real Earth satellite imagery, sampled per-pixel onto a rotating sphere using inverse spherical projection &mdash; no 3D engine or map-tile service, just canvas and trigonometry. The CubeSat model is a stylized reference, not a CAD rendering of the actual bus. If imagery fails to load, this automatically falls back to a vector-drawn globe.</div>
+    <div class="map-note" id="globeSourceNote">Textured with real Earth satellite imagery, sampled per-pixel onto a rotating sphere using inverse spherical projection &mdash; no 3D engine or map-tile service, just canvas and trigonometry. The CubeSat model flying above is a stylized reference for the simulation &mdash; the real CAD-modeled bus it's based on is shown below. If imagery fails to load, this automatically falls back to a vector-drawn globe.</div>
+    <div class="photo-row">
+      <div class="photo-frame">
+        <img src="cad_stowed.jpg" alt="Aether-12 spacecraft, stowed configuration, real CAD render">
+        <div class="photo-caption">Aether&#8209;12, stowed configuration &mdash; actual Phase 4 CAD model</div>
+      </div>
+      <div class="photo-note">This is the real spacecraft the orbital simulation above represents: a <b>12U</b> structural bus, approximately <b>252.3 &times; 232.3 &times; 372.0 mm</b> stowed, with an internal deployment mechanism visible through the open face.</div>
+    </div>
   </div>
-
+ 
   <!-- ============ 3. SIGNAL STRENGTH ============ -->
   <div class="section" id="signalSection">
     <div class="eyebrow">Can We Hear It?</div>
@@ -119,7 +128,7 @@
     <div class="sigbar-scale"><span>No Signal</span><span>Weak</span><span>Strong</span></div>
     <div class="sigsub" id="sigSub">Link margin: &mdash; dB</div>
   </div>
-
+ 
   <!-- ============ 4. DOPPLER ============ -->
   <div class="section">
     <div class="eyebrow">Why The Frequency Moves</div>
@@ -138,7 +147,7 @@
       <span><i class="ln" style="background:var(--blue)"></i>Signal Margin (dB)</span>
     </div>
   </div>
-
+ 
   <!-- ============ 5. WATERFALL ============ -->
   <div class="section">
     <div class="eyebrow">What Our Radio Actually Sees</div>
@@ -147,7 +156,7 @@
     <canvas id="waterfallCanvas" width="900" height="200"></canvas>
     <div class="wf-legend"><span>&minus;5 kHz</span><span>437.500 MHz</span><span>+5 kHz</span></div>
   </div>
-
+ 
   <!-- ============ 6. AI SIGNAL INTELLIGENCE ============ -->
   <div class="section" id="aiSection">
     <div class="eyebrow">Automated Monitoring</div>
@@ -172,7 +181,7 @@
       </div>
     </div>
   </div>
-
+ 
   <!-- ============ 7. MATERIALS & STRUCTURAL DESIGN ============ -->
   <div class="section">
     <div class="eyebrow">Structural Design</div>
@@ -203,8 +212,16 @@
       <div class="compare-row"><span class="compare-lbl">CIGS</span><div class="compare-track"><div class="compare-fill" style="width:100%;background:var(--red);"></div></div><span class="compare-val">~40% loss (Delfi&#8209;C3)</span></div>
     </div>
     <p class="caption" style="margin:12px 0 0;font-size:12px;">TJ GaAs (29.5&ndash;30% efficiency, 1&times;10&sup1;&#8309; e/cm&sup2; radiation hardness) was selected over mono-silicon and CIGS specifically because the Ge bottom junction is more resistant to proton damage crossing the inner Van Allen belt.</p>
+    <div class="photo-row">
+      <div class="photo-frame">
+        <img src="cad_structure.jpg" alt="Aether-12 primary structural frame, real CAD render">
+        <div class="photo-caption">Primary structure &mdash; four rails, two end rings, three mid rings</div>
+      </div>
+      <div class="photo-note">This is the actual CAD-modeled structural core &mdash; not an illustration. <b>Four longitudinal rails, two end rings, and three intermediate rings</b> form the load path the CFRP/Al mass and stiffness figures above describe.</div>
+    </div>
+    <div class="cite">Sources: IIT Kharagpur (2022) CFRP structural analysis &middot; UPSat Design Paper (2018) &middot; Jager, TUM School of Engineering (2024) &middot; ESA DRAMA 3.0.3 &middot; Wang et al. (2024, ACS/PMC) &middot; ESA LEOX</div>
   </div>
-
+ 
   <!-- ============ DEORBIT & END-OF-MISSION COMPLIANCE ============ -->
   <div class="section">
     <div class="eyebrow">End of Mission</div>
@@ -221,8 +238,16 @@
       <div class="compare-row"><span class="compare-lbl">Mega&#8209;Constellation Target</span><div class="compare-track"><div class="compare-fill" style="width:95%;background:var(--green);"></div></div><span class="compare-val">95%+ success</span></div>
     </div>
     <p class="caption" style="margin:12px 0 0;font-size:12px;">Deorbit method: passive drag sail (InflateSail heritage &mdash; 10 m&sup2; sail on a 1 m inflatable mast). A square-pyramid sail geometry gives ~4&times; the drag area of a flat sail, cutting decay time from years to months. Our implementation stows the sail as four membrane quadrants (NE/NW/SE/SW) in a dedicated deployment cassette, released by burn-wire heater blocks on command. Combined with WE43 magnesium structural elements that fully ablate on re-entry, this gives Aether&#8209;12 a zero ground-casualty profile under ESA DRAMA modeling.</p>
+    <div class="photo-row">
+      <div class="photo-frame">
+        <img src="cad_dragsail.jpg" alt="Aether-12 drag sail, deployed configuration, real CAD render">
+        <div class="photo-caption">Drag sail, deployed &mdash; four-quadrant square-pyramid geometry</div>
+      </div>
+      <div class="photo-note">The real modeled deployed geometry, shown with the <b>central release hub</b> where all four sail quadrants and their support booms meet.</div>
+    </div>
+    <div class="cite">Sources: Webb et al. (2019) InflateSail flight demonstration &middot; IADC / FCC / UNOOSA regulatory framework &middot; ESA DRAMA 3.0.3</div>
   </div>
-
+ 
   <!-- ============ 8. BATTERY & POWER SYSTEMS ============ -->
   <div class="section">
     <div class="eyebrow">Energy Budget</div>
@@ -240,8 +265,16 @@
       <div class="compare-row"><span class="compare-lbl">NCA</span><div class="compare-track"><div class="compare-fill" style="width:11%;background:var(--red);"></div></div><span class="compare-val">264 cycles</span></div>
     </div>
     <p class="caption" style="margin:12px 0 0;font-size:12px;">The TJ GaAs array is mounted on <b>deployable solar wing panels</b> rather than body-fixed to the bus &mdash; this is what the CubeSat model on the 3D globe above is showing when its panels extend outward from the body.</p>
+    <div class="photo-row">
+      <div class="photo-frame">
+        <img src="cad_battery.jpg" alt="Aether-12 battery assembly, real CAD render">
+        <div class="photo-caption">Battery assembly &mdash; two 4S4P modules, 32 modeled 21700-cell envelopes</div>
+      </div>
+      <div class="photo-note">The actual modeled battery mechanical build: tray, lid/restraint, module holders, tie rods, busbars, and thermistor representations &mdash; not a stock battery photo.</div>
+    </div>
+    <div class="cite">Source: Cook et al. (2020, 2021), Dalhousie University &mdash; accelerated LEO cycling study</div>
   </div>
-
+ 
   <!-- ============ ATTITUDE DETERMINATION & CONTROL (ADCS) ============ -->
   <div class="section">
     <div class="eyebrow">Pointing &amp; Stability</div>
@@ -254,25 +287,25 @@
     </div>
     <p class="caption" style="margin:12px 0 0;font-size:12px;">This is why the Doppler and link-budget math above matters so much: without accurate attitude control, the antenna and solar wings can't stay reliably pointed, which is exactly the kind of failure mode the AI signal classifier and link-margin tracking above are designed to catch early.</p>
   </div>
-
+ 
   <!-- ============ 9. SPACE ENVIRONMENT & RADIATION HEALTH ============ -->
   <div class="section" id="envSection">
     <div class="eyebrow">Survivability</div>
     <h2>Space Environment &amp; Radiation Health</h2>
     <p class="caption">Materials and shielding decisions from our design study, tracked against live orbital position &mdash; including passes through the South Atlantic Anomaly, where trapped radiation is elevated.</p>
-
+ 
     <div class="env-grid">
       <div class="env-card good"><div class="l">Shielding Strategy</div><div class="v">Z&#8209;Graded</div><div class="foot">183 rad/yr at 500 km &mdash; 100&times; better than unshielded aluminum (NASA Shields&#8209;1 heritage)</div></div>
       <div class="env-card good"><div class="l">AO Coating</div><div class="v">MIL&#8209;53(Al)</div><div class="foot">Erosion yield reduced to 12% of bare polyimide &mdash; 88% protection improvement</div></div>
       <div class="env-card good"><div class="l">EOL Power Retention</div><div class="v">&ge;95%<span>at 24&nbsp;mo</span></div><div class="foot">Design requirement for TJ GaAs array end&#8209;of&#8209;life performance</div></div>
     </div>
-
+ 
     <div class="env-compare">
       <div class="compare-title">Shielding Effectiveness</div>
       <div class="compare-row"><span class="compare-lbl">Z&#8209;Graded Shield</span><div class="compare-track"><div class="compare-fill" style="width:0.7%;background:var(--green);"></div></div><span class="compare-val">183 rad/yr</span></div>
       <div class="compare-row"><span class="compare-lbl">Unshielded Al</span><div class="compare-track"><div class="compare-fill" style="width:100%;background:var(--red);"></div></div><span class="compare-val">27,269 rad/yr</span></div>
     </div>
-
+ 
     <div class="env-compare">
       <div class="compare-title">TID Source Breakdown in LEO</div>
       <div class="compare-row"><span class="compare-lbl">Trapped Protons</span><div class="compare-track"><div class="compare-fill" style="width:45%;background:var(--blue);"></div></div><span class="compare-val">45%</span></div>
@@ -280,17 +313,17 @@
       <div class="compare-row"><span class="compare-lbl">Solar Particle Events</span><div class="compare-track"><div class="compare-fill" style="width:15%;background:var(--amber);"></div></div><span class="compare-val">15%</span></div>
       <div class="compare-row"><span class="compare-lbl">Galactic Cosmic Rays</span><div class="compare-track"><div class="compare-fill" style="width:10%;background:var(--txt-lo);"></div></div><span class="compare-val">10%</span></div>
     </div>
-
+ 
     <p class="caption" style="margin:14px 0 0;font-size:12px;">The Z-graded strategy above is physically implemented as a multi-layer shield vault around the most sensitive electronics &mdash; low-Z, high-Z, intermediate, and isolation layers, each tuned to stop a different part of the particle spectrum. A dedicated radiation sensor, dosimeter, and particle counter fly onboard as instruments in their own right, giving real dose measurements to validate against exactly this kind of model.</p>
-
+ 
     <div class="hero-stats" style="margin-top:16px;">
       <div class="hero-stat"><div class="l">Session Dose (Z&#8209;Shield)</div><div class="v" id="envDoseZ">0.000<span>rad</span></div></div>
       <div class="hero-stat"><div class="l">Session Dose (If Unshielded)</div><div class="v" id="envDoseAl">0.00<span>rad</span></div></div>
     </div>
-
+ 
     <div class="saa-banner" id="saaBanner"><span class="d"></span> SOUTH ATLANTIC ANOMALY CROSSING &mdash; elevated trapped-particle flux</div>
   </div>
-
+ 
   <!-- ============ ONBOARD RADIATION-TOLERANT ELECTRONICS ============ -->
   <div class="section">
     <div class="eyebrow">Flight Computer</div>
@@ -304,12 +337,12 @@
     </div>
     <p class="caption" style="margin:12px 0 0;font-size:12px;">Three-layer strategy: TID screening (component selection), SEL detection &amp; recovery (watchdog), and memory integrity protection (EDAC). Combined with Z-graded shielding, this is what makes an unhardened commercial computer viable for a multi-year mission instead of the ~3-month lifespan COTS parts get with no mitigation at all.</p>
   </div>
-
+ 
   <div class="section">
     <div class="toggle-btn" id="toggleData">&#9656; Show live data feed</div>
     <div class="collapsible" id="dataCollapse"><div id="terminal"></div></div>
   </div>
-
+ 
   <div class="section">
     <div class="toggle-btn" id="toggleLearn">&#9656; How this all works</div>
     <div class="collapsible" id="learnCollapse">
@@ -343,7 +376,7 @@
       <div class="modrow"><span class="modstatus"></span><span class="modname">Radiation Dose Accumulator</span><span class="modtag">Z&#8209;Shield model</span></div>
     </div>
   </div>
-
+ 
   <footer class="foot">
     <b>AETHER&#8209;12</b> &middot; runs entirely in your browser &middot; no server, no backend, no external resources &middot; deployed as a static page
   </footer>
